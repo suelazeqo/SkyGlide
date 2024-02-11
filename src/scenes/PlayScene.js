@@ -13,7 +13,10 @@ class PlayScene extends Phaser.Scene {
         this.pipeHorizontalDistance = 0;
         this.pipeVerticalDistanceRange = [150, 250];
         this.pipeHorizontalDistanceRange = [400, 500];
-        this.flatVelocity = 150;
+        this.flatVelocity = 350;
+
+        this.score = 0;
+        this.scoreText = "";
     }
 
     preload() {
@@ -27,6 +30,7 @@ class PlayScene extends Phaser.Scene {
         this.createBird();
         this.createPipes();
         this.createColliders();
+        this.createScore();
         this.handleInputs();
     }
 
@@ -41,7 +45,7 @@ class PlayScene extends Phaser.Scene {
 
     createBird() {
         this.bird = this.physics.add.sprite(this.config.startPosition.x, this.config.startPosition.y, 'bird').setOrigin(0);
-        this.bird.body.gravity.y = 400;
+        this.bird.body.gravity.y = 600;
         this.bird.setCollideWorldBounds();
     }
 
@@ -64,6 +68,13 @@ class PlayScene extends Phaser.Scene {
 
     createColliders(){
         this.physics.add.collider(this.bird, this.pipes, this.gameOver, null, this)
+    }
+
+    createScore(){
+        this.score = 0;
+        const  bestScore = localStorage.getItem('bestScore')
+        this.scoreText = this.add.text(16,16, `Score: ${0}`, {fontSize:'32px', fill:'#000'})
+        this.add.text(16,52, `Best Score: ${bestScore || 0}`, {fontSize:'18px', fill:'#000'})
     }
 
     handleInputs() {
@@ -94,7 +105,9 @@ class PlayScene extends Phaser.Scene {
             if (pipe.getBounds().right <= 0) {
                 tempPipes.push(pipe);
                 if (tempPipes.length === 2) {
-                    this.placePipe(...tempPipes)
+                    this.placePipe(...tempPipes);
+                    this.increaseScore();
+                    this.saveBestScore()
                 }
             }
         })
@@ -110,9 +123,19 @@ class PlayScene extends Phaser.Scene {
         return rightMostX;
     }
 
+    saveBestScore(){
+        const betScoreText = localStorage.getItem('bestScore')
+        const bestScore = betScoreText &&  parseInt(betScoreText,10);
+
+        if(!bestScore || this.score > bestScore){
+            localStorage.setItem('bestScore', this.score)
+        }
+    }
     gameOver() {
         this.physics.pause();
         this.bird.setTint(0xEE4824);
+
+        this.saveBestScore()
 
         this.time.addEvent({
             delay:1000,
@@ -125,6 +148,10 @@ class PlayScene extends Phaser.Scene {
 
     flap() {
         this.bird.body.velocity.y = -this.flatVelocity
+    }
+    increaseScore(){
+        this.score++;
+        this.scoreText.setText(`Score: ${this.score}`)
     }
 }
 
