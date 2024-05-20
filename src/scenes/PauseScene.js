@@ -5,8 +5,7 @@ class PauseScene extends BaseScene {
         super('PauseScene', config);
         this.menu = [
             {scene: 'PlayScene', text: 'Continue'},
-            {scene: 'Menuscene', text: 'Exit'},
-
+            {scene: 'MenuScene', text: 'Exit'},
         ]
 
     }
@@ -31,7 +30,13 @@ class PauseScene extends BaseScene {
             })
         })
         textGO.on('pointerup', () => {
-
+            if(menuItem.scene && menuItem.text === 'Continue'){
+                this.scene.stop();
+                this.scene.resume(menuItem.scene)
+            }else {
+                this.scene.stop('PlayScene')
+                this.scene.start(menuItem.scene)
+            }
         })
     }
 }
